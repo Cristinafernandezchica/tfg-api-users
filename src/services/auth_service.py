@@ -3,14 +3,18 @@ from src.database import db
 from src.utils.password_hash import hash_password, verify_password
 from src.utils.jwt_manager import create_token
 
-def register_user(email, password, name):
+def register_user(email, password, name, username):
     if User.query.filter_by(email=email).first():
         return None, "Email already exists"
+    
+    if User.query.filter_by(username=username).first():
+        return None, "Username already exists"
 
     user = User(
         email=email,
         password=hash_password(password),
-        name=name
+        name=name,
+        username=username
     )
     db.session.add(user)
     db.session.commit()
@@ -18,13 +22,17 @@ def register_user(email, password, name):
     return user, None
 
 
-def login_user(email, password):
-    user = User.query.filter_by(email=email).first()
+def login_user(identifier, password):
+    user = User.query.filter(
+        (User.email == identifier) | (User.username == identifier)
+    ).first()
+
     if not user or not verify_password(password, user.password):
         return None, "Invalid credentials"
 
     token = create_token(user.id)
     return token, None
+
 
 
 def update_user(user_id, name=None, email=None, password=None):

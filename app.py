@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from config import Config
 from src.database import db
 from src.routes.auth_routes import auth_bp
+from flask_migrate import Migrate
 
 load_dotenv()
 
@@ -11,10 +12,7 @@ def create_app():
     app.config.from_object(Config)
 
     db.init_app(app)
-
-    # Crear tablas si no existen
-    with app.app_context():
-        db.create_all()
+    Migrate(app, db)
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
 

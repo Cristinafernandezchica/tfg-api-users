@@ -11,3 +11,4 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     route = db.Column(db.String(255), nullable=True)
+    username = db.Column(db.String(120), unique=True, nullable=False)

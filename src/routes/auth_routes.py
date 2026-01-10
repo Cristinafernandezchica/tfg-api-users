@@ -17,7 +17,7 @@ def get_user_id_from_header():
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.json
-    user, error = register_user(data["email"], data["password"], data["name"])
+    user, error = register_user(data["email"], data["password"], data["name"], data["username"])
     if error:
         return jsonify({"error": error}), 400
     return jsonify({"message": "User created"}), 201
@@ -26,7 +26,7 @@ def register():
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.json
-    token, error = login_user(data["email"], data["password"])
+    token, error = login_user(data["identifier"], data["password"])
     if error:
         return jsonify({"error": error}), 401
     return jsonify({"token": token})
