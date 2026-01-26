@@ -12,3 +12,5 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     route = db.Column(db.String(255), nullable=True)
     username = db.Column(db.String(120), unique=True, nullable=False)
+    role = db.Column(db.String(20), default="user", nullable=False)
+    thresholds = db.Column(db.JSON, default=dict)
