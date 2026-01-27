@@ -206,11 +206,39 @@ def internal_get_user_thresholds(user_id):
         return jsonify({"error": "User not found"}), 404
     return jsonify(user.thresholds or {}), 200
 
-
+'''
 @auth_bp.route("/users", methods=["GET"])
 @require_role("admin")
 def list_users():
     users = User.query.all()
+    return jsonify([
+        {
+            "id": u.id,
+            "name": u.name,
+            "email": u.email,
+            "username": u.username,
+            "role": u.role
+        }
+        for u in users
+    ]), 200
+'''
+
+
+@auth_bp.route("/users", methods=["GET"])
+@require_role("admin")
+def list_users():
+    query = request.args.get("q", "").lower()
+
+    users = User.query.all()
+
+    if query:
+        users = [
+            u for u in users
+            if query in u.name.lower()
+            or query in u.email.lower()
+            or query in u.username.lower()
+        ]
+
     return jsonify([
         {
             "id": u.id,
