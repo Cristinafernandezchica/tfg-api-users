@@ -22,10 +22,11 @@ def get_user_id_from_header():
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.json
-    user, error = register_user(data["email"], data["password"], data["name"], data["username"])
+    token, error = register_user(data["email"], data["password"], data["name"], data["username"])
     if error:
         return jsonify({"error": error}), 400
-    return jsonify({"message": "User created"}), 201
+
+    return jsonify({"token": token}), 201
 
 # Iniciar sesión
 @auth_bp.route("/login", methods=["POST"])

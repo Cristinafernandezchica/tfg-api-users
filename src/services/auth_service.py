@@ -4,6 +4,8 @@ from src.utils.password_hash import hash_password, verify_password
 from src.utils.jwt_manager import create_token
 
 # Registrar un nuevo usuario
+from src.utils.jwt_manager import create_token
+
 def register_user(email, password, name, username):
     if User.query.filter_by(email=email).first():
         return None, "Email already exists"
@@ -20,7 +22,10 @@ def register_user(email, password, name, username):
     db.session.add(user)
     db.session.commit()
 
-    return user, None
+    token = create_token(user.id, user.role)
+
+    return token, None
+
 
 # Iniciar sesión
 def login_user(identifier, password):
