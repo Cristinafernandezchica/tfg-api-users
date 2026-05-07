@@ -1,9 +1,7 @@
-# tests/conftest.py
 import sys
 import os
 from pathlib import Path
 
-# Agregar el directorio raíz al path de Python
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
 
@@ -18,7 +16,6 @@ from src.routes.auth_routes import auth_bp
 @pytest.fixture(scope='session')
 def app():
     """Fixture que crea una aplicación DE TESTS completamente aislada"""
-    # Crear una app nueva, NO usar create_app()
     app = Flask(__name__)
     
     # Configuración específica para tests
@@ -34,7 +31,6 @@ def app():
     app.register_blueprint(auth_bp, url_prefix="/auth")
     
     with app.app_context():
-        # Crear todas las tablas en SQLite en memoria
         _db.create_all()
         yield app
         _db.drop_all()
@@ -51,7 +47,6 @@ def db(app):
     """Base de datos para tests - se limpia después de cada test"""
     with app.app_context():
         _db.session.rollback()
-        # Limpiar todas las tablas
         meta = _db.metadata
         for table in reversed(meta.sorted_tables):
             _db.session.execute(table.delete())

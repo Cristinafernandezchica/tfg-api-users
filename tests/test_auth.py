@@ -1,4 +1,3 @@
-# tests/test_auth.py
 import pytest
 from src.models.user import User
 from src.database import db
