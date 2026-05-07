@@ -22,6 +22,15 @@ def get_user_id_from_header():
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    required_fields = ['email', 'password', 'name', 'username']
+    missing_fields = [field for field in required_fields if field not in data]
+    
+    if missing_fields:
+        return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
+    
     token, error = register_user(data["email"], data["password"], data["name"], data["username"])
     if error:
         return jsonify({"error": error}), 400
@@ -91,7 +100,7 @@ def delete():
 
     return jsonify({"message": "User deleted"})
 
-# Eliminar usuario (admin)
+# Eliminar usuario (solo admin)
 @auth_bp.route("/admin/delete/<int:user_id>", methods=["DELETE"])
 @require_role("admin")
 def admin_delete_user_route(user_id):
@@ -102,7 +111,7 @@ def admin_delete_user_route(user_id):
     return jsonify({"message": "User deleted"})
 
 
-# Resetear contraseña de un usuario (admin)
+# Resetear contraseña de un usuario (solo admin)
 @auth_bp.route("/admin/reset-password/<int:user_id>", methods=["PUT"])
 @require_role("admin")
 def admin_reset_password_route(user_id):
@@ -119,7 +128,7 @@ def admin_reset_password_route(user_id):
     return jsonify({"message": "Password reset successfully"})
 
 
-# Cambiar rol de un usuario (admin)
+# Cambiar rol de un usuario (solo admin)
 @auth_bp.route("/admin/change-role/<int:user_id>", methods=["PUT"])
 @require_role("admin")
 def admin_change_role_route(user_id):
@@ -165,15 +174,13 @@ def set_my_thresholds():
 
     return jsonify(updated), 200
 
-# Endpoint interno para las alertas de baja ocupación
-# Falta toda la lógica de envío de email
+
+# No se está usando, implementada para funcionalidades futuras
 @auth_bp.route("/internal/low_occupancy_alert", methods=["POST"])
 def internal_low_occupancy_alert():
     """
     Endpoint interno que la API de posicionamiento llama
     cuando detecta baja ocupación para un usuario.
-    NO requiere autenticación de usuario final (podrías
-    protegerlo con API key si quieres).
     """
     data = request.get_json() or {}
     user_id = data.get("user_id")
@@ -189,7 +196,6 @@ def internal_low_occupancy_alert():
 
     email = user.email
 
-    # Aquí llamas a tu integración SMTP (Google) ya existente
     subject = f"Baja ocupación en {room_id}"
     body = (
         f"La estancia {room_id} ha bajado a {occupancy} personas.\n\n"
@@ -207,23 +213,6 @@ def internal_get_user_thresholds(user_id):
         return jsonify({"error": "User not found"}), 404
     return jsonify(user.thresholds or {}), 200
 
-'''
-@auth_bp.route("/users", methods=["GET"])
-@require_role("admin")
-def list_users():
-    users = User.query.all()
-    return jsonify([
-        {
-            "id": u.id,
-            "name": u.name,
-            "email": u.email,
-            "username": u.username,
-            "role": u.role
-        }
-        for u in users
-    ]), 200
-'''
-#####
 
 @auth_bp.route("/users", methods=["GET"])
 @require_role("admin")

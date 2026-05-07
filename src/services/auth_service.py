@@ -8,10 +8,10 @@ from src.utils.jwt_manager import create_token
 
 def register_user(email, password, name, username):
     if User.query.filter_by(email=email).first():
-        return None, "Email already exists"
+        return None, "Email ya registrado"
     
     if User.query.filter_by(username=username).first():
-        return None, "Username already exists"
+        return None, "Nombre de usuario ya registrado"
 
     user = User(
         email=email,
@@ -34,7 +34,7 @@ def login_user(identifier, password):
     ).first()
 
     if not user or not verify_password(password, user.password):
-        return None, "Invalid credentials"
+        return None, "Usuario o clave incorrectos"
 
     token = create_token(user.id, user.role)
     return token, None
@@ -44,15 +44,16 @@ def login_user(identifier, password):
 def update_user(user_id, name=None, email=None, password=None):
     user = User.query.get(user_id)
     if not user:
-        return None, "User not found"
+        return None, "Usuario no encontrado"
 
     if name:
         user.name = name
+    
     if email:
-        # evitar duplicados, excluyendo al propio usuario
-        existing = User.query.filter_by(email=email).first()
+        existing = User.query.filter(User.email == email).first()
         if existing and existing.id != user_id:
-            return None, "Email already exists"
+            return None, "Email ya registrado"
+        user.email = email
 
     if password:
         user.password = hash_password(password)
@@ -64,7 +65,7 @@ def update_user(user_id, name=None, email=None, password=None):
 def delete_user(user_id):
     user = User.query.get(user_id)
     if not user:
-        return None, "User not found"
+        return None, "Usuario no encontrado"
 
     db.session.delete(user)
     db.session.commit()
