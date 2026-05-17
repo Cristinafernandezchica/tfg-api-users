@@ -7,6 +7,7 @@ sys.path.insert(0, str(root_dir))
 
 import pytest
 from flask import Flask
+from unittest.mock import MagicMock, patch
 from src.database import db as _db
 from src.models.user import User
 from src.utils.password_hash import hash_password
@@ -18,16 +19,12 @@ def app():
     """Fixture que crea una aplicación DE TESTS completamente aislada"""
     app = Flask(__name__)
     
-    # Configuración específica para tests
     app.config['TESTING'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET'] = 'test-secret-key'
     
-    # Inicializar la base de datos
     _db.init_app(app)
-    
-    # Registrar blueprints
     app.register_blueprint(auth_bp, url_prefix="/auth")
     
     with app.app_context():
@@ -43,8 +40,15 @@ def client(app):
 
 
 @pytest.fixture(scope='function')
+def app_context(app):
+    """Contexto de aplicación para pruebas que lo necesitan"""
+    with app.app_context():
+        yield app
+
+
+@pytest.fixture(scope='function')
 def db(app):
-    """Base de datos para tests - se limpia después de cada test"""
+    """Base de datos para tests"""
     with app.app_context():
         _db.session.rollback()
         meta = _db.metadata
@@ -57,7 +61,7 @@ def db(app):
 
 @pytest.fixture(scope='function')
 def test_user(db):
-    """Crear un usuario de prueba"""
+    """Crear un usuario de prueba real en BD"""
     user = User(
         email='test@example.com',
         password=hash_password('password123'),
@@ -74,7 +78,7 @@ def test_user(db):
 
 @pytest.fixture(scope='function')
 def admin_user(db):
-    """Crear un usuario administrador de prueba"""
+    """Crear un usuario administrador de prueba real en BD"""
     admin = User(
         email='admin@example.com',
         password=hash_password('admin123'),
@@ -121,3 +125,33 @@ def auth_headers(user_token):
 def admin_headers(admin_token):
     """Headers con autenticación para administrador"""
     return {'Authorization': f'Bearer {admin_token}'}
+
+
+# ==================== MOCKS PARA TESTS DE SERVICIOS ====================
+
+@pytest.fixture
+def mock_user():
+    """Mock de un usuario normal"""
+    user = MagicMock()
+    user.id = 1
+    user.email = "test@example.com"
+    user.username = "testuser"
+    user.name = "Test User"
+    user.password = "hashed_password_123"
+    user.role = "user"
+    user.thresholds = {}
+    return user
+
+
+@pytest.fixture
+def mock_admin():
+    """Mock de un usuario administrador"""
+    admin = MagicMock()
+    admin.id = 2
+    admin.email = "admin@example.com"
+    admin.username = "admin"
+    admin.name = "Admin User"
+    admin.password = "hashed_admin_password"
+    admin.role = "admin"
+    admin.thresholds = {}
+    return admin
